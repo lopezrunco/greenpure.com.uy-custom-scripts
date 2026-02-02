@@ -214,3 +214,77 @@ function cf7_math_validator($result, $tag) {
     return $result;
 }
 
+// Agregar mensaje personalizado en la categoria purificadores-sobre-mesada.
+
+add_action( 'woocommerce_after_cart_item_name', 'show_free_product_message_per_category', 10, 2 );
+
+function show_free_product_message_per_category( $cart_item, $cart_item_key ) {
+    // Get product ID. Handle variation as well.
+    $product_id = $cart_item['product_id'];
+
+    $quantity = (int) $cart_item['quantity'];
+
+    $category_slug = 'purificadores-sobre-mesada';
+    
+    if ( has_term( $category_slug, 'product_cat', $product_id ) ) { 
+        $message = ( $quantity === 1 ) ? '1 purificador de ducha de regalo.' : $quantity . ' purificadores de ducha de regalo.'; 
+        $image_url = 'https://greenpure.com.uy/purificador-ducha-regalo.jpg';
+        $free_price = '$0';
+        
+        echo '
+            <div class="free-product-wrapper">
+                <div class="free-product-image">
+                    <img src="' . esc_url( $image_url ) . '" alt="Purificador de ducha de regalo" loading="lazy" />
+                </div>
+
+                <div class="free-product-content">
+                    <p class="free-product-message">' . esc_html( $message ) . '</p>
+                    <span class="free-product-price">' . esc_html( $free_price ) . '</span>
+                </div>
+            </div>
+        ';
+    }
+}
+
+add_action( 'wp_head', 'free_product_cart_styles' );
+
+function free_product_cart_styles() {
+    ?>
+    <style>
+        .free-product-wrapper {
+            display: flex;
+            gap: 10px;
+            padding: 5px 10px;
+            background: #88ba4224;
+            border: 1px dashed #88ba42;
+            border-radius: 6px;
+            align-items: center;
+        }
+
+        .free-product-image img {
+            width: 60px;
+            height: auto;
+            display: block;
+        }
+
+        .free-product-content {
+            display: flex;
+            flex-direction: row;
+            gap: 10px;
+        }
+
+        .free-product-message {
+            margin: 0;
+            font-weight: 600;
+            color: #1b5e20;
+            font-size: 14px;
+        }
+
+        .free-product-price span {
+            font-size: 14px;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+    </style>
+    <?php
+}
