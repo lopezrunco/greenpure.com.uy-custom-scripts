@@ -184,3 +184,33 @@ function change_address_format( $formats ) {
 	return $formats;
 }
 
+// COMIENZO CODIGO TECMEDIOS //////////////////////////////////////////////////////////////////////////////////////////
+
+// Redireccionar a pagina de agradecimiento despues de enviar mensaje en Contact Form 7.
+add_action( 'wp_footer', 'gp_cf7_redirect_script' );
+function gp_cf7_redirect_script() {
+    ?>
+    <script>
+        document.addEventListener('wpcf7mailsent', function(event) {
+                setTimeout(function() {
+                    window.location.href = 'https://greenpure.com.uy/gracias';
+                }, false);
+            // }
+        }, false);
+    </script>
+    <?php
+}
+
+// Comprobar operacion matematica de formulario de Contact Form 7
+add_filter('wpcf7_validate_text', 'cf7_math_validator', 10, 2);
+add_filter('wpcf7_validate_text*', 'cf7_math_validator', 10, 2);
+
+function cf7_math_validator($result, $tag) {
+    if ($tag->name === 'math-answer') {
+        if ( trim($_POST['math-answer']) != '8' ) {
+            $result->invalidate($tag, "Respuesta incorrecta");
+        }
+    }
+    return $result;
+}
+
