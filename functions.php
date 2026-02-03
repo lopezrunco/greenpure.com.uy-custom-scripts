@@ -214,40 +214,46 @@ function cf7_math_validator($result, $tag) {
     return $result;
 }
 
-// Agregar mensaje personalizado en la categoria purificadores-sobre-mesada.
+// Agregar mensaje personalizado a productos seleccionados en paginas Carrito y Finalizar compra.
 
-add_action( 'woocommerce_after_cart_item_name', 'show_free_product_message_per_category', 10, 2 );
-
-function show_free_product_message_per_category( $cart_item, $cart_item_key ) {
-    // Handle variations.
-    $product_id = $cart_item['variation_id'] ? $cart_item['variation_id'] : $cart_item['product_id'];
-
+function render_free_product_message( $cart_item ) {
+    $product_id = $cart_item['product_id'];
     $quantity = (int) $cart_item['quantity'];
+    $allowed_product_ids = array (35, 36); // Purificador Ceramic 4 Etapas & Purificador Inox 4 Etapas.
 
-    // Productos a los que aplica la promo:
-    // Purificador Ceramic 4 Etapas.
-    // Purificador Inox 4 Etapas.
-    $allowed_product_ids = array (35, 36);
+    if ( ! in_array( $product_id, $allowed_product_ids, true ) ) { return; }
 
-    if ( in_array( $product_id, $allowed_product_ids, true ) ) { 
-        $message = ( $quantity === 1 ) ? '1 purificador de ducha de regalo.' : $quantity . ' purificadores de ducha de regalo.'; 
-        $image_url = 'https://greenpure.com.uy/purificador-ducha-regalo.jpg';
-        $free_price = '$0';
-        
-        echo '
-            <div class="free-product-wrapper">
-                <div class="free-product-image">
-                    <img src="' . esc_url( $image_url ) . '" alt="Purificador de ducha de regalo" loading="lazy" />
-                </div>
-
-                <div class="free-product-content">
-                    <p class="free-product-message">' . esc_html( $message ) . '</p>
-                    <span class="free-product-price">' . esc_html( $free_price ) . '</span>
-                </div>
+    $message = ( $quantity === 1 ) ? '1 purificador de ducha de regalo.' : $quantity . ' purificadores de ducha de regalo.'; 
+    $image_url = 'https://greenpure.com.uy/purificador-ducha-regalo.jpg';
+    $free_price = '$0';
+    
+    echo '
+        <div class="free-product-wrapper">
+            <div class="free-product-image">
+                <img src="' . esc_url( $image_url ) . '" alt="Purificador de ducha de regalo" loading="lazy" />
             </div>
-        ';
-    }
+
+            <div class="free-product-content">
+                <p class="free-product-message">' . esc_html( $message ) . '</p>
+                <span class="free-product-price">' . esc_html( $free_price ) . '</span>
+            </div>
+        </div>
+    ';
 }
+
+// Agregar a pagina CArrito.
+add_action( 'woocommerce_after_cart_item_name', function( $cart_item ) {
+    render_free_product_message( $cart_item );
+}, 10, 1 );
+
+// Pagina Checkout (Finalizar compra).
+add_filter( 'woocommerce_checkout_cart_item_quantity', function( $quantity_html, $cart_item ) {
+    ob_start();
+    render_free_product_message( $cart_item );
+    $message_html = ob_get_clean();
+    
+    return $quantity_html . $message_html;
+}, 10, 2 );
 
 add_action( 'wp_head', 'free_product_cart_styles' );
 
@@ -283,7 +289,7 @@ function free_product_cart_styles() {
             font-size: 14px;
         }
 
-        .free-product-price span {
+        .free-product-price {
             font-size: 14px;
             font-weight: bold;
             color: #2e7d32;
