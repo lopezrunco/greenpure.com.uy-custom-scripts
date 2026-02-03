@@ -219,14 +219,17 @@ function cf7_math_validator($result, $tag) {
 add_action( 'woocommerce_after_cart_item_name', 'show_free_product_message_per_category', 10, 2 );
 
 function show_free_product_message_per_category( $cart_item, $cart_item_key ) {
-    // Get product ID. Handle variation as well.
-    $product_id = $cart_item['product_id'];
+    // Handle variations.
+    $product_id = $cart_item['variation_id'] ? $cart_item['variation_id'] : $cart_item['product_id'];
 
     $quantity = (int) $cart_item['quantity'];
 
-    $category_slug = 'purificadores-sobre-mesada';
-    
-    if ( has_term( $category_slug, 'product_cat', $product_id ) ) { 
+    // Productos a los que aplica la promo:
+    // Purificador Ceramic 4 Etapas.
+    // Purificador Inox 4 Etapas.
+    $allowed_product_ids = array (35, 36);
+
+    if ( in_array( $product_id, $allowed_product_ids, true ) ) { 
         $message = ( $quantity === 1 ) ? '1 purificador de ducha de regalo.' : $quantity . ' purificadores de ducha de regalo.'; 
         $image_url = 'https://greenpure.com.uy/purificador-ducha-regalo.jpg';
         $free_price = '$0';
