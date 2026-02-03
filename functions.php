@@ -214,8 +214,7 @@ function cf7_math_validator($result, $tag) {
     return $result;
 }
 
-// Agregar mensaje personalizado a productos seleccionados en paginas Carrito y Finalizar compra.
-
+// Mostrar mensaje de producto gratis en productos seleccionados en las paginas Carrito y Finalizar compra.
 function render_free_product_message( $cart_item ) {
     $product_id = $cart_item['product_id'];
     $quantity = (int) $cart_item['quantity'];
@@ -241,7 +240,7 @@ function render_free_product_message( $cart_item ) {
     ';
 }
 
-// Agregar a pagina CArrito.
+// Pagina Carrito.
 add_action( 'woocommerce_after_cart_item_name', function( $cart_item ) {
     render_free_product_message( $cart_item );
 }, 10, 1 );
@@ -297,3 +296,29 @@ function free_product_cart_styles() {
     </style>
     <?php
 }
+
+// Mostrar mensaje de producto gratis en email de orden para administradores.
+add_action( 'woocommerce_email_after_order_table', function ($order, $sent_to_admin, $plain_text, $email) {
+    // Email solo para el administrador del ecommerce.
+    if ( ! $sent_to_admin ) { return; }
+
+    $allowed_product_ids = array( 35, 36 );
+    $total_free_products = 0;
+
+    foreach ( $order->get_items() as $item ) {
+        $product_id = $item->get_product_id();
+        $quantity = (int) $item->get_quantity();
+
+        if ( in_array( $product_id, $allowed_product_ids, true ) ) { $total_free_products += $quantity; }
+    }
+
+    if ( $total_free_products === 0 ) { return; }
+
+    $message = ( $total_free_products === 1 ) ? '1 purificador de ducha de regalo.' : $total_free_products . ' purificadores de ducha de regalo.'; 
+
+    if ( $plain_text ) {
+        echo "\n" . $message . "\n";
+    } else {
+        echo '<p><strong>' . esc_html( $message ) . '</strong></p>';
+    }
+}, 20, 4 );
